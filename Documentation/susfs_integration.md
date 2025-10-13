@@ -29,8 +29,8 @@ Run the helper from the kernel repository root:
 ```
 
 By default the script assumes this repository layout (`common/` as the kernel
-root), clones `KernelSU` at tag `v0.9.5`, and clones `susfs4ksu` at tag
-`v2.5.0`.  The susfs kernel patch set is selected for Linux `6.6`.  If your
+root), clones `KernelSU` at tag `v1.0.5`, and clones `susfs4ksu` at ref
+`gki-android15-6.6`.  The susfs kernel patch set is selected for Linux `6.6`.  If your
 kernel checkout does not use a `common/` sub-directory (for example, device
 trees that operate directly from the repository root), the helper will
 automatically fall back to that root.  You can also point it to any other
@@ -40,7 +40,7 @@ To customise any of these inputs, pass the relevant options.  For example, to
 use a different KernelSU tag and susfs ref:
 
 ```bash
-./scripts/setup_susfs.sh --ksu-tag v0.9.6 --susfs-ref v2.5.1
+./scripts/setup_susfs.sh --ksu-tag <ksu_tag> --susfs-ref <susfs_ref>
 ```
 
 The script accepts the following options:

@@ -37,9 +37,9 @@ DEFAULT_KERNEL_REPO=$(cd -- "${SCRIPT_DIR}/.." && pwd)
 
 KERNEL_REPO=${KERNEL_REPO:-${DEFAULT_KERNEL_REPO}}
 KSU_REPO_URL="https://github.com/tiann/KernelSU.git"
-KSU_TAG="v0.9.5"
+KSU_TAG="v1.0.5"
 SUSFS_REPO_URL="https://gitlab.com/simonpunk/susfs4ksu.git"
-SUSFS_REF="v2.5.0"
+SUSFS_REF="gki-android15-6.6"
 KERNEL_VERSION="6.6"
 KERNEL_TREE=""
 FORCE=0
