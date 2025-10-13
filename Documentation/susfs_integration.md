@@ -103,6 +103,9 @@ the detected kernel tree (for AOSP GKI this is `common/`).  The cloned
 * If the patch application fails, inspect the rejects inside the respective
   directories.  Manual conflict resolution may be required when combining with
   additional kernel modifications.
+* When requesting a KernelSU tag or susfs ref, ensure it exists upstream.  The
+  helper validates the ref before cloning or fetching and will report how to
+  list the available tags if it cannot find the requested value.
 * Make sure the selected `--kernel-version` aligns with the susfs branch you
   intend to use.  The helper aborts if it cannot locate the corresponding
   `50_add_susfs_in_kernel-<VER>.patch` file.

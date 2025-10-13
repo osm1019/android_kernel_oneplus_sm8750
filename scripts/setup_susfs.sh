@@ -143,14 +143,43 @@ echo "Using kernel tree at ${KERNEL_TREE}" >&2
 KSU_DIR="${KERNEL_REPO}/KernelSU"
 SUSFS_DIR="${KERNEL_REPO}/susfs4ksu"
 
+resolve_remote_ref() {
+  local remote=$1
+  local ref=$2
+  local fetchspec_var=$3
+
+  if git ls-remote --exit-code "${remote}" "refs/tags/${ref}" >/dev/null 2>&1; then
+    printf -v "${fetchspec_var}" "refs/tags/%s:refs/tags/%s" "${ref}" "${ref}"
+    return 0
+  fi
+
+  if git ls-remote --exit-code "${remote}" "${ref}" >/dev/null 2>&1; then
+    printf -v "${fetchspec_var}" "%s:%s" "${ref}" "${ref}"
+    return 0
+  fi
+
+  return 1
+}
+
 clone_if_missing() {
   local url=$1
   local ref=$2
   local dest=$3
+  local fetchspec=""
+
   if [[ -d "${dest}/.git" ]]; then
     echo "Skipping clone of ${url}; repository already present at ${dest}" >&2
     return 0
   fi
+
+  if ! resolve_remote_ref "${url}" "${ref}" fetchspec; then
+    cat >&2 <<EOF
+error: ref ${ref} was not found at ${url}.
+       Run "git ls-remote --tags ${url}" to inspect available tags or adjust the --ksu-tag/--susfs-ref argument.
+EOF
+    exit 1
+  fi
+
   echo "Cloning ${url} (${ref}) into ${dest}..." >&2
   git clone --depth=1 --branch "${ref}" "${url}" "${dest}"
 }
@@ -158,13 +187,24 @@ clone_if_missing() {
 ensure_checkout_at_ref() {
   local dest=$1
   local ref=$2
+  local fetchspec=""
+
   pushd "${dest}" >/dev/null
   if git rev-parse --verify --quiet "${ref}" >/dev/null; then
     git checkout --quiet "${ref}"
   else
+    if ! resolve_remote_ref origin "${ref}" fetchspec; then
+      local remote_url
+      remote_url=$(git remote get-url origin)
+      cat >&2 <<EOF
+error: ref ${ref} was not found on ${remote_url}.
+       Run "git -C ${dest} ls-remote --tags origin" to inspect available tags or adjust the requested ref.
+EOF
+      exit 1
+    fi
+
     echo "Fetching ref ${ref} in $(pwd)..." >&2
-    git fetch --tags --depth=1 origin "refs/tags/${ref}:refs/tags/${ref}" || \
-      git fetch --depth=1 origin "${ref}:${ref}"
+    git fetch --depth=1 origin "${fetchspec}"
     git checkout --quiet "${ref}"
   fi
   popd >/dev/null
