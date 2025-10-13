@@ -154,3 +154,7 @@ a maintainer tree)
     - tag the patch subject with `ANDROID:`
     - add a `Bug:` tag with the Android bug (required for android-specific features)
 
+
+## susfs integration
+
+A helper automation script is provided at `scripts/setup_susfs.sh`. It follows the official KernelSU build workflow, clones KernelSU and Simon's [susfs for KernelSU](https://gitlab.com/simonpunk/susfs4ksu) repositories at stable tags, copies the susfs payload into this tree, and applies the required patches. The helper now auto-detects whether your kernel sources live in `common/` or at the repository root, and it exposes a `--kernel-tree` option for fully custom layouts. Refer to [Documentation/susfs_integration.md](Documentation/susfs_integration.md) for step-by-step instructions and guidance on customising the tags, kernel tree, kernel version, and additional build considerations.
