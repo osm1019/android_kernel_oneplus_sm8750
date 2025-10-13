@@ -51,7 +51,7 @@ The script accepts the following options:
 | `--ksu-repo URL` | Alternative KernelSU remote (e.g. local mirror). |
 | `--susfs-ref REF` | susfs git ref (tag or commit). Choose tags or commits that bump the susfs version for stability. |
 | `--susfs-repo URL` | Alternative susfs remote. |
-| `--kernel-version VER` | Kernel version used to pick the `50_add_susfs_in_kernel-<VER>.patch` file (default `6.6`). |
+| `--kernel-version VER` | Kernel version suffix the helper prefers when selecting the susfs kernel patch (default `6.6`). |
 
 The helper is idempotent: re-running it will skip cloning if the repositories
 already exist, and it only applies patches that have not yet been merged.  To
@@ -66,8 +66,9 @@ switch to a different tag or ref, delete the relevant `KernelSU/` or
 3. Clones `susfs4ksu` into `$KERNEL_REPO/susfs4ksu` at the specified ref.
 4. Copies the following payload into your tree:
    * `kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch` → `KernelSU/`.
-   * `kernel_patches/50_add_susfs_in_kernel-<kernel_version>.patch` →
-     `<kernel_tree>/50_add_susfs_in_kernel.patch`.
+   * The helper copies the susfs kernel patch that best matches your selected
+     `--kernel-version` (falling back to generic or single available variants)
+     into `<kernel_tree>/50_add_susfs_in_kernel.patch`.
    * `kernel_patches/fs/*` → `<kernel_tree>/fs/`.
    * `kernel_patches/include/linux/*` → `<kernel_tree>/include/linux/`.
 5. Applies the KernelSU susfs enablement patch (`patch -p1` inside `KernelSU/`).
@@ -107,8 +108,9 @@ the detected kernel tree (for AOSP GKI this is `common/`).  The cloned
   helper validates the ref before cloning or fetching and will report how to
   list the available tags if it cannot find the requested value.
 * Make sure the selected `--kernel-version` aligns with the susfs branch you
-  intend to use.  The helper aborts if it cannot locate the corresponding
-  `50_add_susfs_in_kernel-<VER>.patch` file.
+  intend to use.  If no exact match is found the helper falls back to generic or
+  unambiguous variants and, when multiple choices remain, lists the available
+  filenames so you can adjust the version flag.
 * The helper requires network access to fetch git repositories.  When operating
   behind a proxy, configure the standard `git config --global http.proxy` or use
   mirrored repositories with `--ksu-repo`/`--susfs-repo`.

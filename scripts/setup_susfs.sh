@@ -227,7 +227,46 @@ copy_payload() {
   cp -a "${src}"/. "${dest}"/
 }
 
-SUSFS_KERNEL_PATCH_SRC="${SUSFS_DIR}/kernel_patches/50_add_susfs_in_kernel-${KERNEL_VERSION}.patch"
+select_kernel_patch() {
+  local base_dir=$1
+  local version=$2
+
+  local explicit="${base_dir}/50_add_susfs_in_kernel-${version}.patch"
+  if [[ -f "${explicit}" ]]; then
+    printf '%s\n' "${explicit}"
+    return 0
+  fi
+
+  local generic="${base_dir}/50_add_susfs_in_kernel.patch"
+  if [[ -f "${generic}" ]]; then
+    printf '%s\n' "${generic}"
+    return 0
+  fi
+
+  local candidates=()
+  while IFS= read -r entry; do
+    candidates+=("${entry}")
+  done < <(find "${base_dir}" -maxdepth 1 -type f -name '50_add_susfs_in_kernel*.patch' -printf '%f\n' | sort)
+
+  if [[ ${#candidates[@]} -eq 1 ]]; then
+    printf '%s\n' "${base_dir}/${candidates[0]}"
+    return 0
+  fi
+
+  echo "error: could not determine kernel patch for susfs under ${base_dir}" >&2
+  if (( ${#candidates[@]} )); then
+    echo "       Available patch files:" >&2
+    for candidate in "${candidates[@]}"; do
+      echo "         - ${candidate}" >&2
+    done
+  else
+    echo "       No patch files matching 50_add_susfs_in_kernel*.patch were found." >&2
+  fi
+  echo "       Specify a matching suffix via --kernel-version or place the expected patch in the directory." >&2
+  return 1
+}
+
+SUSFS_KERNEL_PATCH_SRC=$(select_kernel_patch "${SUSFS_DIR}/kernel_patches" "${KERNEL_VERSION}")
 SUSFS_KERNEL_PATCH_DST="${KERNEL_TREE}/50_add_susfs_in_kernel.patch"
 SUSFS_KSU_PATCH_SRC="${SUSFS_DIR}/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch"
 SUSFS_KSU_PATCH_DST="${KSU_DIR}/10_enable_susfs_for_ksu.patch"
