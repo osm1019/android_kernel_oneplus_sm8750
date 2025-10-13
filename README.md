@@ -157,4 +157,4 @@ a maintainer tree)
 
 ## susfs integration
 
-A helper automation script is provided at `scripts/setup_susfs.sh`. It follows the official KernelSU build workflow, clones KernelSU and Simon's [susfs for KernelSU](https://gitlab.com/simonpunk/susfs4ksu) repositories at stable tags, copies the susfs payload into this tree, and applies the required patches. Refer to [Documentation/susfs_integration.md](Documentation/susfs_integration.md) for step-by-step instructions and guidance on customising the tags, kernel version, and additional build considerations.
+A helper wrapper script is provided at `scripts/setup_susfs.sh`. It downloads the upstream susfs setup script from the [SukiSU-Ultra](https://github.com/SukiSU-Ultra/SukiSU-Ultra) project and executes it with the selected branch (default `main`). Refer to [Documentation/susfs_integration.md](Documentation/susfs_integration.md) for more detailed instructions, including pointers to the [susfs for KernelSU](https://gitlab.com/simonpunk/susfs4ksu/-/tree/gki-android15-6.6?ref_type=heads) sources.
