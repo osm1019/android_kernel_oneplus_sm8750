@@ -154,3 +154,7 @@ a maintainer tree)
     - tag the patch subject with `ANDROID:`
     - add a `Bug:` tag with the Android bug (required for android-specific features)
 
+
+## susfs integration
+
+A helper wrapper script is provided at `scripts/setup_susfs.sh`. It downloads the upstream susfs setup script from the [SukiSU-Ultra](https://github.com/SukiSU-Ultra/SukiSU-Ultra) project and executes it with the selected branch (default `main`). Refer to [Documentation/susfs_integration.md](Documentation/susfs_integration.md) for more detailed instructions, including pointers to the [susfs for KernelSU](https://gitlab.com/simonpunk/susfs4ksu/-/tree/gki-android15-6.6?ref_type=heads) sources.
