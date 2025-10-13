@@ -42,6 +42,7 @@ SUSFS_REPO_URL="https://gitlab.com/simonpunk/susfs4ksu.git"
 SUSFS_REF="v2.5.0"
 KERNEL_VERSION="6.6"
 KERNEL_TREE=""
+FORCE=0
 
 usage() {
   cat <<USAGE
@@ -55,6 +56,7 @@ Options:
   --susfs-repo URL        Override the susfs git remote (default: ${SUSFS_REPO_URL}).
   --kernel-tree DIR       Path to the kernel source tree (defaults to "common" under the repo).
   --kernel-version VER    Kernel version suffix for susfs patch selection (default: ${KERNEL_VERSION}).
+  --force                 Continue even if the kernel or KernelSU trees have uncommitted changes.
   -h, --help              Show this message and exit.
 
 Environment overrides:
@@ -99,6 +101,10 @@ while (( $# )); do
       [[ $# -ge 2 ]] || { echo "error: --kernel-version requires an argument" >&2; exit 1; }
       KERNEL_VERSION="$2"
       shift 2
+      ;;
+    --force)
+      FORCE=1
+      shift
       ;;
     -h|--help)
       usage
@@ -215,6 +221,31 @@ ensure_checkout_at_ref "${KSU_DIR}" "${KSU_TAG}"
 
 clone_if_missing "${SUSFS_REPO_URL}" "${SUSFS_REF}" "${SUSFS_DIR}"
 ensure_checkout_at_ref "${SUSFS_DIR}" "${SUSFS_REF}"
+
+require_clean_tree() {
+  local workdir=$1
+  local label=$2
+
+  if ! git -C "${workdir}" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    return
+  fi
+
+  if [[ ${FORCE} -eq 1 ]]; then
+    return
+  fi
+
+  if [[ -n "$(git -C "${workdir}" status --porcelain)" ]]; then
+    cat >&2 <<EOF
+error: ${label} contains uncommitted changes.
+       Please clean the tree (e.g. "git -C ${workdir} reset --hard" and "git -C ${workdir} clean -fd")
+       or re-run this script with --force to bypass the safety check.
+EOF
+    exit 1
+  fi
+}
+
+require_clean_tree "${KSU_DIR}" "KernelSU checkout"
+require_clean_tree "${KERNEL_TREE}" "kernel source tree"
 
 copy_payload() {
   local src=$1

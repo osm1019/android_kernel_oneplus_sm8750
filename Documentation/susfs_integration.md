@@ -17,6 +17,8 @@ and flash the kernel directly from this tree without re-running the helper.
 * The standard `patch` and `install` utilities available in `PATH`.
 * Enough disk space to clone the KernelSU and susfs repositories into the kernel
   root.
+* A clean KernelSU checkout and kernel source tree.  The helper refuses to
+  modify directories with uncommitted changes unless forced.
 
 ## Quick start
 
@@ -52,6 +54,7 @@ The script accepts the following options:
 | `--susfs-ref REF` | susfs git ref (tag or commit). Choose tags or commits that bump the susfs version for stability. |
 | `--susfs-repo URL` | Alternative susfs remote. |
 | `--kernel-version VER` | Kernel version suffix the helper prefers when selecting the susfs kernel patch (default `6.6`). |
+| `--force` | Skip the clean-tree safety checks (use only if you intentionally want to patch a dirty tree). |
 
 The helper is idempotent: re-running it will skip cloning if the repositories
 already exist, and it only applies patches that have not yet been merged.  To
@@ -109,6 +112,10 @@ the detected kernel tree (for AOSP GKI this is `common/`).  The cloned
   and `<kernel_tree>/50_add_susfs_in_kernel.patch`), adjust your sources or
   choose a different `--kernel-version`, then apply them manually (for example
   with `git apply --3way` or `patch`) before rerunning the helper.
+* When the helper complains about uncommitted changes in either tree, clean the
+  checkout (for example with `git reset --hard` and `git clean -fd`) so the
+  patches apply cleanly.  You can pass `--force` if you understand and accept
+  the risk of patch conflicts in a dirty tree.
 * When requesting a KernelSU tag or susfs ref, ensure it exists upstream.  The
   helper validates the ref before cloning or fetching and will report how to
   list the available tags if it cannot find the requested value.
