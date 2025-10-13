@@ -291,16 +291,51 @@ apply_patch() {
   local workdir=$1
   local patch_file=$2
   local description=$3
+
   echo "Applying ${description}..." >&2
+
+  if git -C "${workdir}" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    if git -C "${workdir}" apply --check "${patch_file}" >/dev/null 2>&1; then
+      git -C "${workdir}" apply "${patch_file}"
+      echo "Applied ${description}." >&2
+      return
+    fi
+
+    if git -C "${workdir}" apply --reverse --check "${patch_file}" >/dev/null 2>&1; then
+      echo "${description} already applied; skipping." >&2
+      return
+    fi
+
+    if git -C "${workdir}" apply --3way --check "${patch_file}" >/dev/null 2>&1; then
+      echo "Applying ${description} with three-way merge..." >&2
+      git -C "${workdir}" apply --3way "${patch_file}"
+      echo "Applied ${description} (three-way merge)." >&2
+      return
+    fi
+
+    cat >&2 <<EOF
+error: failed to apply ${description} automatically with git apply.
+       No changes were made. Ensure ${patch_file} matches your sources or resolve it manually.
+EOF
+    exit 1
+  fi
+
   if patch --directory="${workdir}" --strip=1 --dry-run <"${patch_file}" >/dev/null 2>&1; then
     patch --directory="${workdir}" --strip=1 <"${patch_file}" >/dev/null
     echo "Applied ${description}." >&2
-  elif patch --directory="${workdir}" --strip=1 --reverse --dry-run <"${patch_file}" >/dev/null 2>&1; then
-    echo "${description} already applied; skipping." >&2
-  else
-    echo "error: failed to apply ${description}" >&2
-    exit 1
+    return
   fi
+
+  if patch --directory="${workdir}" --strip=1 --reverse --dry-run <"${patch_file}" >/dev/null 2>&1; then
+    echo "${description} already applied; skipping." >&2
+    return
+  fi
+
+  cat >&2 <<EOF
+error: failed to apply ${description} automatically with patch.
+       The worktree was not modified. Inspect ${patch_file} and adjust your sources or --kernel-version.
+EOF
+  exit 1
 }
 
 apply_patch "${KSU_DIR}" "${SUSFS_KSU_PATCH_DST}" "KernelSU susfs hook patch"

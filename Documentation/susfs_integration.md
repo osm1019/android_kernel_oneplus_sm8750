@@ -71,9 +71,12 @@ switch to a different tag or ref, delete the relevant `KernelSU/` or
      into `<kernel_tree>/50_add_susfs_in_kernel.patch`.
    * `kernel_patches/fs/*` → `<kernel_tree>/fs/`.
    * `kernel_patches/include/linux/*` → `<kernel_tree>/include/linux/`.
-5. Applies the KernelSU susfs enablement patch (`patch -p1` inside `KernelSU/`).
-6. Applies the kernel susfs integration patch (`patch -p1` inside the kernel
-   source tree).
+5. Applies the KernelSU susfs enablement patch inside `KernelSU/` (preferring
+   `git apply` with reverse detection and a three-way fallback when the directory
+   is a git checkout).
+6. Applies the kernel susfs integration patch inside the kernel source tree
+   using the same guarded flow so the tree is only modified when the patch
+   applies cleanly.
 
 Once the script finishes, proceed with the standard KernelSU build flow inside
 the detected kernel tree (for AOSP GKI this is `common/`).  The cloned
@@ -101,9 +104,11 @@ the detected kernel tree (for AOSP GKI this is `common/`).  The cloned
 
 ## Troubleshooting
 
-* If the patch application fails, inspect the rejects inside the respective
-  directories.  Manual conflict resolution may be required when combining with
-  additional kernel modifications.
+* If the helper reports that it could not apply a patch automatically, no
+  changes were made.  Review the copied patch files (`KernelSU/10_enable_susfs_for_ksu.patch`
+  and `<kernel_tree>/50_add_susfs_in_kernel.patch`), adjust your sources or
+  choose a different `--kernel-version`, then apply them manually (for example
+  with `git apply --3way` or `patch`) before rerunning the helper.
 * When requesting a KernelSU tag or susfs ref, ensure it exists upstream.  The
   helper validates the ref before cloning or fetching and will report how to
   list the available tags if it cannot find the requested value.
